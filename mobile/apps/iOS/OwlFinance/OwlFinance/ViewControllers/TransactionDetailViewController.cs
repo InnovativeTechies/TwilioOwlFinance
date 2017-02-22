@@ -109,7 +109,7 @@ namespace OwlFinance.ViewControllers
 
 		private void NavigateToMessages()
 		{
-			var id = SelectedTransaction == null ? 1 : SelectedTransaction.TransactionId;
+			var id = SelectedTransaction == null ? SelectedTransactionId : SelectedTransaction.TransactionId;
 			var messagesViewController = GetViewController(MainStoryboard , "MessageDetailViewController") as MessageDetailViewController;
 			messagesViewController.SelectedTransactionId = id;
 			var navCtrl = new UINavigationController(messagesViewController);
