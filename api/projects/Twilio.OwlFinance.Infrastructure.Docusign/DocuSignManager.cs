@@ -18,7 +18,7 @@ namespace Twilio.OwlFinance.Infrastructure.Docusign
 
         public DocuSignManager() : this(new PdfGenerator())
         {
-            
+
         }
 
         private DocuSignManager(PdfGenerator pdfGenerator)
@@ -26,13 +26,13 @@ namespace Twilio.OwlFinance.Infrastructure.Docusign
             this.pdfGenerator = pdfGenerator;
         }
 
-        public DocuSignResponseModel SendDocument(DocumentSignModel model, Case caseModel, DocuSignAuthHeader authInformation, string serverPath)
+        public DocuSignResponseModel SendDocument(DocumentSignModel model, Case caseModel, DocuSignAuthHeader authInformation, string serverPath, string confirmationUrl)
         {
             var docusignResponse = new DocuSignResponseModel();
 
             var loginInfo = GetLoginInfo(authInformation);
 
-            var documentModel = SendDocumentAndGetUrl(model, caseModel, loginInfo, serverPath);
+            var documentModel = SendDocumentAndGetUrl(model, caseModel, loginInfo, serverPath, confirmationUrl);
 
             docusignResponse.SignUrl = documentModel.SignUrl;
             docusignResponse.CaseID = model.CaseID.ToString();
@@ -52,7 +52,7 @@ namespace Twilio.OwlFinance.Infrastructure.Docusign
 
             var document2 = envelopesApi.GetDocument(loginInfo.AccountId, log.EnvelopeID, log.DocumentID);
 
-            var documentUrl =  "/documents/signed/signedocument-" + Guid.NewGuid() + ".pdf";
+            var documentUrl = "/documents/signed/signedocument-" + Guid.NewGuid() + ".pdf";
 
             var filePath = serverPath + documentUrl;
             using (Stream file = File.Create(filePath))
@@ -62,7 +62,7 @@ namespace Twilio.OwlFinance.Infrastructure.Docusign
 
 
             docusignResponse.DocumentUrl = host + "/" + documentUrl;
-                
+
             docusignResponse.CaseID = log.CaseID.ToString();
             docusignResponse.DocumentID = log.DocumentID;
             docusignResponse.EnvelopeID = log.EnvelopeID;
@@ -72,13 +72,13 @@ namespace Twilio.OwlFinance.Infrastructure.Docusign
 
         }
 
-        private DocumentModel SendDocumentAndGetUrl(DocumentSignModel model, Case caseModel, LoginAccount loginInfo, string serverPath)
+        private DocumentModel SendDocumentAndGetUrl(DocumentSignModel model, Case caseModel, LoginAccount loginInfo, string serverPath, string confirmationUrl)
         {
-            var amountString = (caseModel.Transaction.Amount/100d).ToString("C");
+            var amountString = (caseModel.Transaction.Amount / 100d).ToString("C");
 
             var email = Guid.NewGuid() + "@twilio.com";
 
-            string generatedPdfFilePath = pdfGenerator.GenerateDocument(caseModel.Customer.FirstName + " " + caseModel.Customer.LastName, caseModel.Transaction.Description, amountString , serverPath);
+            string generatedPdfFilePath = pdfGenerator.GenerateDocument(caseModel.Customer.FirstName + " " + caseModel.Customer.LastName, caseModel.Transaction.Description, amountString, serverPath);
 
             byte[] fileBytes = File.ReadAllBytes(generatedPdfFilePath);
             EnvelopeDefinition envDef = new EnvelopeDefinition { EmailSubject = "Owl Finance: Transaction" };
@@ -126,10 +126,9 @@ namespace Twilio.OwlFinance.Infrastructure.Docusign
             EnvelopesApi envelopesApi = new EnvelopesApi();
             EnvelopeSummary envelopeSummary = envelopesApi.CreateEnvelope(loginInfo.AccountId, envDef);
 
-            RecipientViewRequest viewOptions = new RecipientViewRequest()
+            RecipientViewRequest viewOptions = new RecipientViewRequest
             {
-                ReturnUrl = "https://owlfinance.azurewebsites.net/#/docusign",
-                //ReturnUrl = "https://www.docusign.com/devcenter",
+                ReturnUrl = confirmationUrl,
                 ClientUserId = clientId,
                 AuthenticationMethod = "email",
                 UserName = model.SendTo,

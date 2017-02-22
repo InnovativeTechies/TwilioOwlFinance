@@ -24,7 +24,6 @@ namespace Twilio.OwlFinance.BankingService.Api
         [ResponseType(typeof(ApiResponse<DocuSignResponseModel>))]
         [Route("api/docusign/send")]
         [HttpPost]
-
         public async Task<HttpResponseMessage> SendDocument(DocumentSignModel model)
         {
             string serverPath = HttpContext.Current.Server.MapPath("~");
@@ -36,7 +35,6 @@ namespace Twilio.OwlFinance.BankingService.Api
         [ResponseType(typeof(ApiResponse<DocuSignResponseModel>))]
         [Route("api/docusign/document/{id}")]
         [HttpGet]
-
         public async Task<HttpResponseMessage> GetDocument(int id)
         {
             string serverPath = HttpContext.Current.Server.MapPath("~");

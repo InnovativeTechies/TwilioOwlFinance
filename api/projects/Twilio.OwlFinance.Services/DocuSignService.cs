@@ -17,19 +17,21 @@ namespace Twilio.OwlFinance.Services
     {
         private readonly IRepository<DocuSignLog> repository;
         private readonly IRepository<Case> caseRepository;
+        private readonly IAppSettingsProvider appSettings;
         private readonly ITwilioApiSettingsProvider settings;
-        public DocuSignService(ILogger logger, IRepository<DocuSignLog> repository, ITwilioApiSettingsProvider settings, IRepository<Case> caseRepository) : base(logger)
+
+        public DocuSignService(ILogger logger, IRepository<DocuSignLog> repository, ITwilioApiSettingsProvider settings, IRepository<Case> caseRepository, IAppSettingsProvider appSettings) : base(logger)
         {
             this.repository = repository;
             this.settings = settings;
             this.caseRepository = caseRepository;
+            this.appSettings = appSettings;
         }
-
 
         public async Task<ApiResponse<DocuSignResponseModel>> SendDocument(DocumentSignModel model, string serverPath)
         {
-            
             var docusignManager = new DocuSignManager();
+            var confirmationUrl = appSettings.Get("docusign:ConfirmationUrl");
 
             var authInformation = new DocuSignAuthHeader
             {
@@ -40,7 +42,7 @@ namespace Twilio.OwlFinance.Services
 
             var caseModel = caseRepository.Query(c => c.ID == model.CaseID).FirstOrDefault();
 
-            var responseModel = docusignManager.SendDocument(model, caseModel, authInformation, serverPath);
+            var responseModel = docusignManager.SendDocument(model, caseModel, authInformation, serverPath, confirmationUrl);
 
             var docusignLog = new DocuSignLog
             {
