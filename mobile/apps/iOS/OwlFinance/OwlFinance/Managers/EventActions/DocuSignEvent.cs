@@ -9,6 +9,8 @@ namespace OwlFinance.Managers.EventActions
 		{
 			AppDelegate.InvokeOnMainThread(() =>
 			{
+				if (DocuSignViewController.IsVisible) return;
+			
 				var vc = AppDelegate.MainStoryboard.InstantiateViewController("DocuSignController") as DocuSignViewController;
 				if (vc != null)
 				{
