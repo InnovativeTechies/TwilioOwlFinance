@@ -9,7 +9,8 @@ namespace OwlFinance.ViewControllers
     public partial class DocuSignViewController : UIViewController
     {
 		private static ISignalRService SignalRService => Application.Container.Resolve<ISignalRService>();
-		
+		public static bool IsVisible { get; private set; }
+
 		public string DocuSignUrl { get; set; }
         
 		public DocuSignViewController (IntPtr handle) 
@@ -21,6 +22,7 @@ namespace OwlFinance.ViewControllers
 		{
 			base.ViewDidLoad();
 
+			IsVisible = true;
 			DoneSigningButton.Clicked += DoneSigningButton_Clicked;
 
 			if (!string.IsNullOrWhiteSpace(DocuSignUrl))
@@ -29,14 +31,16 @@ namespace OwlFinance.ViewControllers
 			}
 		}
 
-		public override async void ViewDidDisappear(bool animated)
+		public override void ViewDidDisappear(bool animated)
 		{
-			await SignalRService.SendAsync("SIGNED");
 			base.ViewDidDisappear(animated);
+			IsVisible = false;
 		}
 
-		private void DoneSigningButton_Clicked(object sender, EventArgs e)
+		private async void DoneSigningButton_Clicked(object sender, EventArgs e)
 		{
+			await SignalRService.SendAsync("SIGNED");
+			
 			DismissModalViewController(true);
 		}
 
